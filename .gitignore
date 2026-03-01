@@ -1,0 +1,23 @@
+# Binaries
+/bin/
+/pipelinesentinel
+*.exe
+
+# Test and coverage output
+*.test
+coverage.out
+coverage.*
+
+# Pipeline output — these names must match what the Makefile actually writes.
+audit-results.json
+explained-results.json
+eval.json
+report.md
+prcomment.md
+digest.md
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+.claude/
