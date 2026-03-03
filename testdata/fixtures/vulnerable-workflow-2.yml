@@ -1,0 +1,24 @@
+name: Issue Triage
+on:
+  issues:
+    types: [opened]
+  issue_comment:
+    types: [created]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Label from the issue title
+        run: |
+          TITLE="${{ github.event.issue.title }}"
+          ./scripts/label.sh "$TITLE"
+
+      - name: Notify
+        run: echo "${{ secrets.SLACK_WEBHOOK }}" | ./scripts/notify.sh
+
+      - uses: some-org/some-action@latest
+        with:
+          body: ${{ github.event.comment.body }}

@@ -1,0 +1,23 @@
+name: PR Preview
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions: write-all
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Greet the author
+        run: |
+          echo "Thanks for the PR titled: ${{ github.event.pull_request.title }}"
+          echo "Branch: ${{ github.event.pull_request.head.ref }}"
+
+      - name: Publish preview
+        run: ./deploy.sh --token ${{ secrets.DEPLOY_TOKEN }}
