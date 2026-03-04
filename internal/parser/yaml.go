@@ -181,10 +181,9 @@ func parseSteps(node *yaml.Node) []Step {
 
 		if n, key := mapValue(item, "run"); n != nil {
 			step.Run = scalarOf(n)
-			// A block scalar's own node position points at the first content
-			// line, which is what a citation should reference. Fall back to the
-			// key when the parser reports nothing useful.
-			step.RunBodyPos = posOf(n)
+			// A block scalar's node points at the `|` marker, so the body starts
+			// on the following line; BlockBodyPos accounts for that.
+			step.RunBodyPos = BlockBodyPos(n)
 			if !step.RunBodyPos.Valid() {
 				step.RunBodyPos = posOf(key)
 			}

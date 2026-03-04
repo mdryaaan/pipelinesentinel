@@ -115,6 +115,27 @@ func stringsOf(node *yaml.Node) []Scalar {
 	}
 }
 
+// BlockBodyPos returns where a scalar's *content* starts.
+//
+// For a literal or folded block (`run: |`), yaml.Node reports the line of the
+// `|` marker, so the content actually begins on the next line. Citing the node
+// position directly lands the reader on the word "run" instead of the offending
+// command — which is the whole difference between a useful citation and a
+// useless one.
+func BlockBodyPos(node *yaml.Node) Pos {
+	p := posOf(node)
+	if !p.Valid() || node == nil {
+		return p
+	}
+	if node.Style == yaml.LiteralStyle || node.Style == yaml.FoldedStyle {
+		p.Line++
+		// Content is indented relative to the key, and the exact column is not
+		// recoverable from the node, so it is cleared rather than left wrong.
+		p.Column = 0
+	}
+	return p
+}
+
 // LineOffset converts a position inside a block scalar to an absolute file line.
 //
 // A `run: |` block reports one position for the whole script, so an offset
