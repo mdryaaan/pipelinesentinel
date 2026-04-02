@@ -2,6 +2,7 @@ package rules
 
 import (
 	"sort"
+	"strings"
 
 	"github.com/mdryaaan/pipelinesentinel/internal/finding"
 	"github.com/mdryaaan/pipelinesentinel/internal/parser"
@@ -35,6 +36,62 @@ func DefaultRules() []Rule {
 
 // Rules exposes the configured rules, for the reference table.
 func (e *Engine) Rules() []Rule { return e.rules }
+
+// Only narrows the engine to the named rules. An empty or entirely unknown
+// list leaves the engine untouched, so a typo in `--rule` cannot silently
+// audit nothing and report a clean bill of health.
+func (e *Engine) Only(ids []string) *Engine {
+	if len(ids) == 0 {
+		return e
+	}
+
+	wanted := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		wanted[strings.ToLower(strings.TrimSpace(id))] = true
+	}
+
+	var kept []Rule
+	for _, rule := range e.rules {
+		if wanted[string(rule.ID())] {
+			kept = append(kept, rule)
+		}
+	}
+	if len(kept) == 0 {
+		return e
+	}
+	return &Engine{rules: kept}
+}
+
+// Without drops the named rules, for suppressing a rule a repository has
+// consciously decided not to enforce.
+func (e *Engine) Without(ids []string) *Engine {
+	if len(ids) == 0 {
+		return e
+	}
+
+	skip := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		skip[strings.ToLower(strings.TrimSpace(id))] = true
+	}
+
+	kept := make([]Rule, 0, len(e.rules))
+	for _, rule := range e.rules {
+		if !skip[string(rule.ID())] {
+			kept = append(kept, rule)
+		}
+	}
+	return &Engine{rules: kept}
+}
+
+// KnownRuleIDs lists every rule ID the binary ships with.
+func KnownRuleIDs() []string {
+	ids := make([]string, 0, 5)
+	for _, rule := range DefaultRules() {
+		ids = append(ids, string(rule.ID()))
+	}
+	sort.Strings(ids)
+	return ids
+}
 
 // Run checks one workflow and returns findings in report order.
 func (e *Engine) Run(wf *parser.Workflow) []finding.Finding {
