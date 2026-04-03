@@ -1,7 +1,10 @@
 // Package finding defines the security findings pipelinesentinel reports.
 package finding
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Severity is how urgently a finding needs attention.
 type Severity string
@@ -32,10 +35,13 @@ func (s Severity) Valid() bool {
 }
 
 // ParseSeverity converts a string to a Severity, erroring outside the set.
+//
+// Input is normalised because this parses CLI flags and config files, where
+// `--min-severity High` is the same intent as `--min-severity high`.
 func ParseSeverity(in string) (Severity, error) {
-	s := Severity(in)
+	s := Severity(strings.ToLower(strings.TrimSpace(in)))
 	if !s.Valid() {
-		return "", fmt.Errorf("unknown severity %q", in)
+		return "", fmt.Errorf("unknown severity %q (want one of critical, high, medium, low, info)", in)
 	}
 	return s, nil
 }
