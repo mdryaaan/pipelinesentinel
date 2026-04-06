@@ -144,3 +144,18 @@ func TestLineAtOutOfRange(t *testing.T) {
 	assert.Empty(t, wf.LineAt(0))
 	assert.Empty(t, wf.LineAt(99999))
 }
+
+func TestExcerptIsNumberedAndClamped(t *testing.T) {
+	data := []byte("name: t\non: [push]\njobs:\n  a:\n    runs-on: ubuntu-latest\n")
+	wf, err := Parse("t.yml", data)
+	require.NoError(t, err)
+
+	assert.Equal(t, "   2 | on: [push]\n   3 | jobs:\n", wf.Excerpt(2, 3))
+	assert.Equal(t, 5, wf.LineCount())
+
+	// Out-of-range requests clamp rather than panic: a finding near the top or
+	// the bottom of a file is exactly where an off-by-one would bite.
+	assert.Contains(t, wf.Excerpt(-5, 2), "   1 | name: t")
+	assert.Contains(t, wf.Excerpt(4, 900), "runs-on")
+	assert.Empty(t, wf.Excerpt(9, 2), "an inverted range should be empty")
+}

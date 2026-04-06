@@ -74,7 +74,7 @@ func Parse(file string, data []byte) (*Workflow, error) {
 
 	wf := &Workflow{
 		File:  file,
-		Lines: strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n"),
+		Lines: splitLines(string(data)),
 	}
 
 	if n, _ := mapValue(doc, "name"); n != nil {
@@ -212,6 +212,17 @@ func parseStringMap(parent *yaml.Node, key string) map[string]Scalar {
 	return out
 }
 
+// splitLines normalises line endings and drops the empty element a trailing
+// newline leaves behind, so LineCount matches what an editor shows.
+func splitLines(data string) []string {
+	normalised := strings.ReplaceAll(data, "\r\n", "\n")
+	lines := strings.Split(normalised, "\n")
+	if n := len(lines); n > 0 && lines[n-1] == "" {
+		lines = lines[:n-1]
+	}
+	return lines
+}
+
 // LineAt returns the 1-indexed source line, or "" when out of range.
 func (w *Workflow) LineAt(line int) string {
 	if line < 1 || line > len(w.Lines) {
@@ -239,6 +250,32 @@ func (w *Workflow) Snippet(line, context int) string {
 		fmt.Fprintf(&b, "%4d | %s\n", i, w.Lines[i-1])
 	}
 	return strings.TrimRight(b.String(), "\n")
+}
+
+// LineCount returns the number of source lines in the workflow.
+func (w *Workflow) LineCount() int { return len(w.Lines) }
+
+// Excerpt renders an inclusive numbered range of the file.
+//
+// The line numbers are part of the text on purpose: they are what a reasoning
+// pass cites, and a citation that carries a number can be checked against the
+// range it was given.
+func (w *Workflow) Excerpt(first, last int) string {
+	if first < 1 {
+		first = 1
+	}
+	if last > len(w.Lines) {
+		last = len(w.Lines)
+	}
+	if first > last {
+		return ""
+	}
+
+	var b strings.Builder
+	for i := first; i <= last; i++ {
+		fmt.Fprintf(&b, "%4d | %s\n", i, w.Lines[i-1])
+	}
+	return b.String()
 }
 
 // HasTrigger reports whether the workflow fires on the named event.
