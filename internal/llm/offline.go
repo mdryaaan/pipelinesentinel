@@ -175,8 +175,10 @@ func (o *Offline) hasUntrustedTrigger(triggers []string) (bool, string) {
 // for getting untrusted input to a shell.
 func (o *Offline) boundToEnv(lines []numberedSource) (int, bool) {
 	for _, line := range lines {
-		trimmed := strings.TrimSpace(line.Text)
-		if trimmed == "env:" || strings.HasPrefix(trimmed, "env:") {
+		// A step's env: block is often the first key of a list item, so it
+		// appears as `- env:` rather than `env:`.
+		trimmed := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line.Text), "-"))
+		if strings.HasPrefix(trimmed, "env:") {
 			return line.Number, true
 		}
 	}
