@@ -1,0 +1,12 @@
+name: Deploy
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ship it
+        run: ./deploy.sh --token ${{ secrets.DEPLOY_TOKEN }} --env production

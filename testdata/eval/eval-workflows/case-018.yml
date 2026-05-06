@@ -1,0 +1,11 @@
+name: Debug
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show the configuration
+        run: printf 'token=%s\n' "${{ secrets.API_TOKEN }}"

@@ -1,0 +1,11 @@
+name: CI
+on: [push]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/setup
+      - uses: docker://alpine:3.20
+      - run: make test

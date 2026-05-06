@@ -1,0 +1,12 @@
+name: Scan
+on:
+  schedule:
+    - cron: '0 3 * * *'
+permissions:
+  contents: read
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run the scanner
+        run: scanner --api-key=${{ secrets.SCANNER_KEY }} --format json

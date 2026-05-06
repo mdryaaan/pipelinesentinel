@@ -27,6 +27,10 @@ func (p Pos) Valid() bool { return p.Line > 0 }
 type Scalar struct {
 	Value string `json:"value"`
 	Pos   Pos    `json:"pos"`
+	// Body is where the value's text begins. For a block scalar that is the
+	// line after the `|` or `>` marker; for everything else it equals Pos.
+	// Findings inside a multi-line value are offset from here.
+	Body Pos `json:"body"`
 }
 
 // String returns the underlying value.
@@ -48,7 +52,7 @@ func scalarOf(node *yaml.Node) Scalar {
 	if node == nil {
 		return Scalar{}
 	}
-	return Scalar{Value: node.Value, Pos: posOf(node)}
+	return Scalar{Value: node.Value, Pos: posOf(node), Body: BlockBodyPos(node)}
 }
 
 // mapValue returns the value node for key in a mapping node, plus the key's own

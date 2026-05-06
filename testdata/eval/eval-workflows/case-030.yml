@@ -1,0 +1,11 @@
+name: Release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: some-org/setup@v2
+      - uses: another-org/publish@v1.2.3

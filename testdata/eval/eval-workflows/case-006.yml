@@ -1,0 +1,22 @@
+name: Reproduce
+on:
+  issues:
+    types: [labeled]
+permissions:
+  contents: read
+jobs:
+  repro:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Build a reproduction
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/repro
+          cd /tmp/repro
+          echo "collecting"
+          cat > repro.txt <<'NOTE'
+          placeholder
+          NOTE
+          printf '%s' "${{ github.event.issue.body }}" > body.txt
+          make repro

@@ -1,0 +1,12 @@
+name: Notify
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send the webhook
+        run: echo "${{ secrets.SLACK_WEBHOOK }}" | ./scripts/notify.sh

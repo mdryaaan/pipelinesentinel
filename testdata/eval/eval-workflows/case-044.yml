@@ -1,0 +1,13 @@
+name: Report
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post the report
+        run: |
+          curl -sS -H "Authorization: Bearer ${{ secrets.REPORT_TOKEN }}" \
+            https://api.example.com/reports

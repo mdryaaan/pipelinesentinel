@@ -1,0 +1,16 @@
+name: Auto reply
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+  issues: write
+jobs:
+  reply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@11bd71901bbe5b1630ceea73d27597364c9af683 # v7.0.1
+        with:
+          script: |
+            const title = "${{ github.event.issue.title }}";
+            core.info(`received ${title}`);

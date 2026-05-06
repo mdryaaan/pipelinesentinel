@@ -133,5 +133,13 @@ func (r *PwnRequestRule) untrustedCheckout(step parser.Step) (string, bool) {
 			return candidate, true
 		}
 	}
+
+	// `refs/pull/<n>/head` and `refs/pull/<n>/merge` reach the same fork code by
+	// a different spelling, and both are common enough in real workflows that
+	// missing them would leave the rule easy to walk around by accident.
+	if strings.Contains(lower, "refs/pull/") {
+		return ref.Value, true
+	}
+
 	return "", false
 }

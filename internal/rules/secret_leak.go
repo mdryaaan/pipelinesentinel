@@ -13,8 +13,12 @@ import (
 // printCommands write their arguments somewhere a human or a log can read.
 var printCommands = regexp.MustCompile(`(?i)^\s*(echo|printf|print|cat|tee|write-host|write-output)\b`)
 
-// argFlag matches a secret handed to a program as a command-line flag value.
-var argFlag = regexp.MustCompile(`(?i)(^|\s)(-{1,2}[a-z0-9][a-z0-9-]*)[= ]\s*["']?\$\{\{`)
+// pureAssignment matches a line that only binds the secret to a shell variable.
+//
+// `TOKEN="${{ secrets.X }}"` on its own puts the value in the script text but
+// not in any other process's argv, so it is not the leak this rule is about.
+// The moment a command follows on the same line, it is.
+var pureAssignment = regexp.MustCompile(`(?i)^\s*(export\s+)?[a-z_][a-z0-9_]*=\s*["']?\$\{\{[^}]*\}\}["']?\s*$`)
 
 // SecretLeakRule flags secrets that end up in logs or in the process table.
 type SecretLeakRule struct{}
@@ -99,15 +103,22 @@ func (r *SecretLeakRule) classify(line, secret string) (string, string, finding.
 				"read access can download.", secret),
 			finding.Critical
 
-	case argFlag.MatchString(line):
-		return "passed as a command-line argument",
-			fmt.Sprintf("`%s` is passed as a command-line argument. Every process on the runner "+
-				"can read the full argv of every other process, and many tools echo their own "+
-				"invocation on error. Pass it through the environment or on stdin instead.", secret),
+	case pureAssignment.MatchString(line):
+		// Binding to a shell variable and using it later is the pattern this
+		// rule is asking for, so it is not reported.
+		return "", "", finding.Info
+
+	default:
+		// Anything else on a command line puts the expanded value in the
+		// command's argv.
+		return "passed on a command line",
+			fmt.Sprintf("`%s` is expanded into a command line. Every process on the runner can "+
+				"read the full argv of every other process, and many tools echo their own "+
+				"invocation on error. Bind it to `env:` and read it from the environment, or "+
+				"pass it on stdin.", secret),
 			finding.High
 	}
 
-	return "", "", finding.Info
 }
 
 func (r *SecretLeakRule) fixFor(wf *parser.Workflow, line int, source, secret string) string {

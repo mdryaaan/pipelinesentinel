@@ -1,0 +1,465 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "case-001",
+      "file": "eval-workflows/case-001.yml",
+      "description": "Issue title interpolated into a run block",
+      "category": "script-injection",
+      "expected": [
+        "script-injection"
+      ],
+      "exploitable": true,
+      "expected_line": 13
+    },
+    {
+      "id": "case-002",
+      "file": "eval-workflows/case-002.yml",
+      "description": "Pull request title interpolated under pull_request_target",
+      "category": "script-injection",
+      "expected": [
+        "script-injection",
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 14
+    },
+    {
+      "id": "case-003",
+      "file": "eval-workflows/case-003.yml",
+      "description": "Comment body interpolated into a command",
+      "category": "script-injection",
+      "expected": [
+        "script-injection"
+      ],
+      "exploitable": true,
+      "expected_line": 13
+    },
+    {
+      "id": "case-004",
+      "file": "eval-workflows/case-004.yml",
+      "description": "Branch name interpolated into a build command",
+      "category": "script-injection",
+      "expected": [
+        "script-injection"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-005",
+      "file": "eval-workflows/case-005.yml",
+      "description": "Commit message interpolated on a push-only workflow",
+      "category": "script-injection",
+      "expected": [
+        "script-injection"
+      ],
+      "exploitable": false,
+      "expected_line": 13
+    },
+    {
+      "id": "case-006",
+      "file": "eval-workflows/case-006.yml",
+      "description": "Issue body interpolated deep inside a block scalar",
+      "category": "script-injection",
+      "expected": [
+        "script-injection"
+      ],
+      "exploitable": true,
+      "expected_line": 21
+    },
+    {
+      "id": "case-007",
+      "file": "eval-workflows/case-007.yml",
+      "description": "Untrusted title passed through env and used as a shell variable",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-008",
+      "file": "eval-workflows/case-008.yml",
+      "description": "Trusted context values interpolated into a run block",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-009",
+      "file": "eval-workflows/case-009.yml",
+      "description": "pull_request_target checking out the pull request head sha",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-010",
+      "file": "eval-workflows/case-010.yml",
+      "description": "pull_request_target checking out the pull request head ref",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 13
+    },
+    {
+      "id": "case-011",
+      "file": "eval-workflows/case-011.yml",
+      "description": "pull_request_target checking out github.head_ref",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-012",
+      "file": "eval-workflows/case-012.yml",
+      "description": "pull_request_target checking out the merge commit",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-013",
+      "file": "eval-workflows/case-013.yml",
+      "description": "pull_request_target with no checkout of the pull request",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": false,
+      "expected_line": 3
+    },
+    {
+      "id": "case-014",
+      "file": "eval-workflows/case-014.yml",
+      "description": "pull_request_target checking out the fork in a later job",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 18
+    },
+    {
+      "id": "case-015",
+      "file": "eval-workflows/case-015.yml",
+      "description": "pull_request checking out the head, which is the sandboxed trigger",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-016",
+      "file": "eval-workflows/case-016.yml",
+      "description": "workflow_run consuming an artifact without checking out the fork",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-017",
+      "file": "eval-workflows/case-017.yml",
+      "description": "Secret echoed to the build log",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-018",
+      "file": "eval-workflows/case-018.yml",
+      "description": "Secret printed with printf",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 11
+    },
+    {
+      "id": "case-019",
+      "file": "eval-workflows/case-019.yml",
+      "description": "Secret passed as a long command-line flag",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-020",
+      "file": "eval-workflows/case-020.yml",
+      "description": "Secret passed as a short command-line flag",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-021",
+      "file": "eval-workflows/case-021.yml",
+      "description": "Secret leaked on one line of a longer script",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 15
+    },
+    {
+      "id": "case-022",
+      "file": "eval-workflows/case-022.yml",
+      "description": "Secret passed as an equals-form flag value",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-023",
+      "file": "eval-workflows/case-023.yml",
+      "description": "Secret bound to env and read by the script",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-024",
+      "file": "eval-workflows/case-024.yml",
+      "description": "Secret handed to an action input rather than a shell",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-025",
+      "file": "eval-workflows/case-025.yml",
+      "description": "First-party action pinned to a version tag",
+      "category": "unpinned-action",
+      "expected": [
+        "unpinned-action"
+      ],
+      "exploitable": false,
+      "expected_line": 9
+    },
+    {
+      "id": "case-026",
+      "file": "eval-workflows/case-026.yml",
+      "description": "Action pinned to a branch",
+      "category": "unpinned-action",
+      "expected": [
+        "unpinned-action"
+      ],
+      "exploitable": true,
+      "expected_line": 9
+    },
+    {
+      "id": "case-027",
+      "file": "eval-workflows/case-027.yml",
+      "description": "Third-party action pinned to @latest",
+      "category": "unpinned-action",
+      "expected": [
+        "unpinned-action"
+      ],
+      "exploitable": true,
+      "expected_line": 9
+    },
+    {
+      "id": "case-028",
+      "file": "eval-workflows/case-028.yml",
+      "description": "Action reference with no version at all",
+      "category": "unpinned-action",
+      "expected": [
+        "unpinned-action"
+      ],
+      "exploitable": true,
+      "expected_line": 9
+    },
+    {
+      "id": "case-029",
+      "file": "eval-workflows/case-029.yml",
+      "description": "Action pinned to an abbreviated commit sha",
+      "category": "unpinned-action",
+      "expected": [
+        "unpinned-action"
+      ],
+      "exploitable": true,
+      "expected_line": 9
+    },
+    {
+      "id": "case-030",
+      "file": "eval-workflows/case-030.yml",
+      "description": "Several third-party actions on floating tags",
+      "category": "unpinned-action",
+      "expected": [
+        "unpinned-action"
+      ],
+      "exploitable": true,
+      "expected_line": 10
+    },
+    {
+      "id": "case-031",
+      "file": "eval-workflows/case-031.yml",
+      "description": "Every action pinned to a full sha with a version comment",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-032",
+      "file": "eval-workflows/case-032.yml",
+      "description": "Local and container actions, which are not third-party refs",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-033",
+      "file": "eval-workflows/case-033.yml",
+      "description": "Blanket write-all at workflow level",
+      "category": "broad-permissions",
+      "expected": [
+        "broad-permissions"
+      ],
+      "exploitable": true,
+      "expected_line": 5
+    },
+    {
+      "id": "case-034",
+      "file": "eval-workflows/case-034.yml",
+      "description": "Blanket write-all on a single job",
+      "category": "broad-permissions",
+      "expected": [
+        "broad-permissions"
+      ],
+      "exploitable": true,
+      "expected_line": 9
+    },
+    {
+      "id": "case-035",
+      "file": "eval-workflows/case-035.yml",
+      "description": "No permissions block on a push workflow",
+      "category": "broad-permissions",
+      "expected": [
+        "broad-permissions"
+      ],
+      "exploitable": false,
+      "expected_line": 3
+    },
+    {
+      "id": "case-036",
+      "file": "eval-workflows/case-036.yml",
+      "description": "No permissions block on a workflow driven by comments",
+      "category": "broad-permissions",
+      "expected": [
+        "broad-permissions"
+      ],
+      "exploitable": true,
+      "expected_line": 3
+    },
+    {
+      "id": "case-037",
+      "file": "eval-workflows/case-037.yml",
+      "description": "Contents write granted on a comment-driven workflow",
+      "category": "broad-permissions",
+      "expected": [
+        "broad-permissions"
+      ],
+      "exploitable": true,
+      "expected_line": 6
+    },
+    {
+      "id": "case-038",
+      "file": "eval-workflows/case-038.yml",
+      "description": "Package write granted on an issue-driven workflow",
+      "category": "broad-permissions",
+      "expected": [
+        "broad-permissions"
+      ],
+      "exploitable": true,
+      "expected_line": 7
+    },
+    {
+      "id": "case-039",
+      "file": "eval-workflows/case-039.yml",
+      "description": "Least-privilege permissions at both levels",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-040",
+      "file": "eval-workflows/case-040.yml",
+      "description": "Blanket read-all, which grants no write scope",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-041",
+      "file": "eval-workflows/case-041.yml",
+      "description": "Untrusted expression appearing only inside a shell comment",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    },
+    {
+      "id": "case-042",
+      "file": "eval-workflows/case-042.yml",
+      "description": "Untrusted title interpolated into an actions/github-script body",
+      "category": "script-injection",
+      "expected": [
+        "script-injection"
+      ],
+      "exploitable": true,
+      "expected_line": 15
+    },
+    {
+      "id": "case-043",
+      "file": "eval-workflows/case-043.yml",
+      "description": "pull_request_target checking out refs/pull/N/merge",
+      "category": "pwn-request",
+      "expected": [
+        "pwn-request"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-044",
+      "file": "eval-workflows/case-044.yml",
+      "description": "Secret interpolated into a quoted curl header",
+      "category": "secret-leak",
+      "expected": [
+        "secret-leak"
+      ],
+      "exploitable": true,
+      "expected_line": 12
+    },
+    {
+      "id": "case-045",
+      "file": "eval-workflows/case-045.yml",
+      "description": "workflow_dispatch input interpolated into a run block",
+      "category": "clean",
+      "expected": [],
+      "exploitable": false
+    }
+  ]
+}

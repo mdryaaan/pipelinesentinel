@@ -1,0 +1,9 @@
+name: Analyse
+on: [push]
+permissions:
+  contents: read
+jobs:
+  analyse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: some-org/analyser@latest

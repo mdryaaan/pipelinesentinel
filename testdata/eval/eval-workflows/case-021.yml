@@ -1,0 +1,16 @@
+name: Release
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build and publish
+        run: |
+          set -euo pipefail
+          make build
+          make package
+          echo "publishing with ${{ secrets.NPM_TOKEN }}"
+          npm publish

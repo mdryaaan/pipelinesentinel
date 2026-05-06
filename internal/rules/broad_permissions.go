@@ -20,6 +20,24 @@ var untrustedTriggers = map[string]bool{
 	"fork":                true,
 }
 
+// sensitiveScopes are the write scopes worth flagging under an untrusted
+// trigger.
+//
+// `pull-requests: write` and `issues: write` are deliberately absent. A labeler
+// or a welcome-bot needs exactly those, and firing on every one of them would
+// train people to ignore this rule — which costs more than the marginal risk of
+// an attacker being able to add a label. The scopes listed here are the ones
+// that let an attacker change what the repository ships.
+var sensitiveScopes = map[string]bool{
+	"contents":        true,
+	"packages":        true,
+	"actions":         true,
+	"deployments":     true,
+	"id-token":        true,
+	"security-events": true,
+	"attestations":    true,
+}
+
 // BroadPermissionsRule flags over-broad GITHUB_TOKEN grants.
 type BroadPermissionsRule struct{}
 
@@ -142,7 +160,7 @@ func (r *BroadPermissionsRule) checkBlock(
 	}
 
 	for name, value := range perms.Scopes {
-		if !strings.EqualFold(value.Value, "write") {
+		if !strings.EqualFold(value.Value, "write") || !sensitiveScopes[strings.ToLower(name)] {
 			continue
 		}
 		out = append(out, finding.Finding{

@@ -1,0 +1,17 @@
+name: Triage
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Route the issue
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+        run: |
+          # historical: this used to read ${{ github.event.issue.title }} directly
+          ./scripts/route.sh "$ISSUE_TITLE"
