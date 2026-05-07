@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -142,6 +143,26 @@ func asThreshold(err error, target **thresholdError) bool {
 	return false
 }
 
+// removeAll returns values with every entry of drop taken out.
+func removeAll(values, drop []string) []string {
+	if len(values) == 0 || len(drop) == 0 {
+		return values
+	}
+
+	skip := make(map[string]bool, len(drop))
+	for _, d := range drop {
+		skip[strings.ToLower(strings.TrimSpace(d))] = true
+	}
+
+	out := make([]string, 0, len(values))
+	for _, v := range values {
+		if !skip[strings.ToLower(strings.TrimSpace(v))] {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
 // resolveConfig layers flags over the config file over the defaults.
 //
 // Flags win because they are the most specific expression of intent: someone
@@ -188,6 +209,11 @@ func resolveConfig(cmd *cobra.Command) (config.Config, error) {
 	}
 	if flags.Changed("rule") {
 		cfg.Rules = opts.Rules
+		// Asking for a rule explicitly outranks a config file that had
+		// suppressed it. Without this, `--rule unpinned-action` in a repository
+		// whose config ignores that rule reports nothing at all, which reads as
+		// "your workflows are clean" rather than "you cancelled yourself out".
+		cfg.Ignore = removeAll(cfg.Ignore, opts.Rules)
 	}
 	if flags.Changed("ignore") {
 		cfg.Ignore = opts.Ignore
