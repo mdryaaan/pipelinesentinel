@@ -12,6 +12,7 @@ coverage.*
 audit-results.json
 explained-results.json
 eval.json
+eval.md
 report.md
 prcomment.md
 digest.md
