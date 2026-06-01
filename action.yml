@@ -1,0 +1,136 @@
+name: pipelinesentinel
+description: Audit GitHub Actions workflows for supply-chain security risks
+author: Md Raiyan
+
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  path:
+    description: Directory to audit. Defaults to the checked-out repository.
+    required: false
+    default: '.'
+  fail-on:
+    description: Severity at which the job fails (critical, high, medium, low, info).
+    required: false
+    default: high
+  min-severity:
+    description: Hide findings below this severity.
+    required: false
+    default: info
+  rules:
+    description: Comma-separated rules to run. Empty means all of them.
+    required: false
+    default: ''
+  ignore:
+    description: Comma-separated rules to skip.
+    required: false
+    default: ''
+  format:
+    description: Report format written to the job summary (markdown, digest, json, sarif).
+    required: false
+    default: markdown
+  sarif-file:
+    description: Path to also write a SARIF file, for upload to code scanning.
+    required: false
+    default: ''
+  json-file:
+    description: Path to also write the machine-readable audit result.
+    required: false
+    default: ''
+  version:
+    description: pipelinesentinel version to install (a tag, or "latest").
+    required: false
+    default: latest
+
+outputs:
+  findings:
+    description: Number of findings that survived the reasoning pass.
+    value: ${{ steps.audit.outputs.findings }}
+  worst-severity:
+    description: The highest severity found, or "info" when clean.
+    value: ${{ steps.audit.outputs.worst-severity }}
+  report-file:
+    description: Path to the generated markdown report.
+    value: ${{ steps.audit.outputs.report-file }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@41dfa10bad2bb2ae585af6ee5bb4d7d973ad74ed # v5.1.0
+      with:
+        go-version: '1.22'
+        cache: false
+
+    - name: Install pipelinesentinel
+      shell: bash
+      env:
+        PS_VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        ref="$PS_VERSION"
+        if [ "$ref" = "latest" ]; then
+          ref="latest"
+        fi
+        go install "github.com/mdryaaan/pipelinesentinel@${ref}"
+        echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+    - name: Audit workflows
+      id: audit
+      shell: bash
+      env:
+        PS_PATH: ${{ inputs.path }}
+        PS_FAIL_ON: ${{ inputs.fail-on }}
+        PS_MIN_SEVERITY: ${{ inputs.min-severity }}
+        PS_RULES: ${{ inputs.rules }}
+        PS_IGNORE: ${{ inputs.ignore }}
+        PS_FORMAT: ${{ inputs.format }}
+        PS_SARIF: ${{ inputs.sarif-file }}
+        PS_JSON: ${{ inputs.json-file }}
+      run: |
+        set -euo pipefail
+
+        args=("$PS_PATH" "--fail-on" "$PS_FAIL_ON" "--min-severity" "$PS_MIN_SEVERITY")
+        [ -n "$PS_RULES" ] && args+=("--rule" "$PS_RULES")
+        [ -n "$PS_IGNORE" ] && args+=("--ignore" "$PS_IGNORE")
+
+        report="pipelinesentinel-report.md"
+
+        # The machine-readable result is written first and unconditionally, so
+        # the outputs below are available even on the run that fails the job —
+        # which is exactly the run someone needs the numbers from.
+        json="${PS_JSON:-pipelinesentinel-audit.json}"
+        set +e
+        pipelinesentinel report "${args[@]}" --format "$PS_FORMAT" -o "$report" --json "$json"
+        status=$?
+        set -e
+
+        if [ -n "$PS_SARIF" ]; then
+          pipelinesentinel report "${args[@]}" --format sarif -o "$PS_SARIF" || true
+        fi
+
+        findings=0
+        worst=info
+        if [ -f "$json" ]; then
+          findings="$(grep -c '"rule_id"' "$json" || true)"
+          for level in critical high medium low; do
+            if grep -q "\"severity\": \"$level\"" "$json"; then
+              worst="$level"
+              break
+            fi
+          done
+        fi
+
+        {
+          echo "findings=$findings"
+          echo "worst-severity=$worst"
+          echo "report-file=$report"
+        } >> "$GITHUB_OUTPUT"
+
+        if [ -f "$report" ]; then
+          cat "$report" >> "$GITHUB_STEP_SUMMARY"
+        fi
+
+        exit "$status"

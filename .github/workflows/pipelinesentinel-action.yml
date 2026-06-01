@@ -1,0 +1,89 @@
+name: Self-test the action
+
+# The composite action is the surface most people will use, and it is the part
+# that cannot be covered by a Go test: it is bash, `go install`, and job
+# outputs. This workflow exercises it end to end on every change to it.
+on:
+  push:
+    branches: [main]
+    paths:
+      - action.yml
+      - .github/workflows/pipelinesentinel-action.yml
+  pull_request:
+    paths:
+      - action.yml
+      - .github/workflows/pipelinesentinel-action.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-repository:
+    name: Passes on its own workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Audit
+        id: audit
+        uses: ./
+        with:
+          fail-on: medium
+          json-file: audit.json
+
+      - name: Check the outputs
+        env:
+          FINDINGS: ${{ steps.audit.outputs.findings }}
+          WORST: ${{ steps.audit.outputs.worst-severity }}
+        run: |
+          set -euo pipefail
+          echo "findings=$FINDINGS worst=$WORST"
+          if [ ! -f audit.json ]; then
+            echo "the action did not write the machine-readable result"
+            exit 1
+          fi
+
+  vulnerable-fixtures:
+    name: Fails on a vulnerable workflow
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # A gate that never fails is not a gate, so this job asserts the failure
+      # path as deliberately as the other one asserts the success path.
+      - name: Stage a deliberately vulnerable workflow
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/target/.github/workflows
+          cp testdata/fixtures/vulnerable-workflow-1.yml /tmp/target/.github/workflows/
+
+      - name: Audit the vulnerable copy
+        id: audit
+        continue-on-error: true
+        uses: ./
+        with:
+          path: /tmp/target
+          fail-on: critical
+          sarif-file: results.sarif
+
+      - name: Assert the gate tripped
+        env:
+          OUTCOME: ${{ steps.audit.outcome }}
+          FINDINGS: ${{ steps.audit.outputs.findings }}
+          WORST: ${{ steps.audit.outputs.worst-severity }}
+        run: |
+          set -euo pipefail
+          if [ "$OUTCOME" != "failure" ]; then
+            echo "expected the action to fail on a vulnerable workflow, got: $OUTCOME"
+            exit 1
+          fi
+          if [ "$WORST" != "critical" ]; then
+            echo "expected a critical finding, got: $WORST"
+            exit 1
+          fi
+          if [ ! -s results.sarif ]; then
+            echo "no SARIF file was written"
+            exit 1
+          fi
+          echo "gate tripped correctly with $FINDINGS finding(s)"
