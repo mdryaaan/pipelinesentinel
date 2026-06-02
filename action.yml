@@ -93,8 +93,15 @@ runs:
         set -euo pipefail
 
         args=("$PS_PATH" "--fail-on" "$PS_FAIL_ON" "--min-severity" "$PS_MIN_SEVERITY")
-        [ -n "$PS_RULES" ] && args+=("--rule" "$PS_RULES")
-        [ -n "$PS_IGNORE" ] && args+=("--ignore" "$PS_IGNORE")
+        # Written as `if` blocks rather than `[ ... ] && ...`: under `set -e`
+        # a false test is the last command on the line, and the step would exit
+        # non-zero without running the audit at all.
+        if [ -n "$PS_RULES" ]; then
+          args+=("--rule" "$PS_RULES")
+        fi
+        if [ -n "$PS_IGNORE" ]; then
+          args+=("--ignore" "$PS_IGNORE")
+        fi
 
         report="pipelinesentinel-report.md"
 
@@ -111,16 +118,20 @@ runs:
           pipelinesentinel report "${args[@]}" --format sarif -o "$PS_SARIF" || true
         fi
 
+        # The tool writes a summary object precisely so this step does not have
+        # to re-derive counts from the finding list and re-apply the dismissal
+        # rules in bash.
         findings=0
         worst=info
         if [ -f "$json" ]; then
-          findings="$(grep -c '"rule_id"' "$json" || true)"
-          for level in critical high medium low; do
-            if grep -q "\"severity\": \"$level\"" "$json"; then
-              worst="$level"
-              break
-            fi
-          done
+          summary="$(grep -m1 '"total"' "$json" || true)"
+          if [ -n "$summary" ]; then
+            findings="$(printf '%s' "$summary" | tr -dc '0-9')"
+          fi
+          worst_line="$(grep -m1 '"worst"' "$json" || true)"
+          if [ -n "$worst_line" ]; then
+            worst="$(printf '%s' "$worst_line" | sed -E 's/.*"worst": *"([a-z]+)".*/\1/')"
+          fi
         fi
 
         {

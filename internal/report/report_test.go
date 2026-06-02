@@ -362,3 +362,31 @@ func TestReasoningSectionReportsFabricatedCitations(t *testing.T) {
 		t.Errorf("dropped citations are not disclosed:\n%s", out)
 	}
 }
+
+// The summary exists so a bash step or a policy gate does not have to
+// re-derive counts from the finding list and re-apply the dismissal rules.
+func TestSummariseMatchesTheActiveFindings(t *testing.T) {
+	audit := sampleAudit()
+	audit.Summary = Summarise(audit.Findings)
+
+	if audit.Summary.Total != len(audit.Active()) {
+		t.Errorf("summary total = %d, want %d", audit.Summary.Total, len(audit.Active()))
+	}
+	if audit.Summary.Worst != finding.Critical {
+		t.Errorf("summary worst = %s, want critical", audit.Summary.Worst)
+	}
+	if audit.Summary.Dismissed != 1 {
+		t.Errorf("summary dismissed = %d, want 1", audit.Summary.Dismissed)
+	}
+	if audit.Summary.BySeverity["high"] != 0 {
+		t.Errorf("the dismissed high finding is counted: %v", audit.Summary.BySeverity)
+	}
+	if audit.Summary.ByRule["pwn-request"] != 1 {
+		t.Errorf("by_rule = %v", audit.Summary.ByRule)
+	}
+
+	clean := Summarise(nil)
+	if clean.Total != 0 || clean.Worst != finding.Info {
+		t.Errorf("an empty summary should be clean and info, got %+v", clean)
+	}
+}

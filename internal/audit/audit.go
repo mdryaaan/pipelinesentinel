@@ -95,6 +95,7 @@ func (r *Runner) Run(ctx context.Context) (report.Audit, error) {
 	}
 
 	finding.Sort(audit.Findings)
+	audit.Summary = report.Summarise(audit.Findings)
 
 	if reviewer != nil {
 		audit.Reasoning = report.SummariseReasoning(stats)

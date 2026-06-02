@@ -194,3 +194,21 @@ func TestRunSurfacesSourceErrors(t *testing.T) {
 		t.Fatal("expected an error from an unreadable source")
 	}
 }
+
+func TestRunPopulatesTheSummary(t *testing.T) {
+	audit, err := (&Runner{Source: fixtureSource(), Config: config.Default()}).
+		Run(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if audit.Summary.Total != len(audit.Active()) {
+		t.Errorf("summary total = %d, want %d", audit.Summary.Total, len(audit.Active()))
+	}
+	if audit.Summary.Worst != audit.Worst() {
+		t.Errorf("summary worst = %s, want %s", audit.Summary.Worst, audit.Worst())
+	}
+	if len(audit.Summary.ByRule) == 0 {
+		t.Error("the summary has no per-rule counts")
+	}
+}

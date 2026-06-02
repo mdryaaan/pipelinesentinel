@@ -16,14 +16,52 @@ import (
 // report and the JSON export from quietly disagreeing — a real risk when the
 // JSON is what a policy gate reads and the Markdown is what a human reads.
 type Audit struct {
-	Tool        string            `json:"tool"`
-	Version     string            `json:"version"`
-	Source      string            `json:"source"`
-	GeneratedAt time.Time         `json:"generated_at"`
-	Files       []FileResult      `json:"files"`
-	Findings    []finding.Finding `json:"findings"`
-	Reasoning   *ReasoningSummary `json:"reasoning,omitempty"`
-	Errors      []FileError       `json:"errors,omitempty"`
+	Tool        string    `json:"tool"`
+	Version     string    `json:"version"`
+	Source      string    `json:"source"`
+	GeneratedAt time.Time `json:"generated_at"`
+	// Summary is derived from Findings and written into the JSON so consumers
+	// that are not Go programs — a bash step in a composite action, a policy
+	// gate, a dashboard — do not have to re-derive the counts by parsing the
+	// finding list and re-applying the dismissal rules themselves.
+	Summary   Summary           `json:"summary"`
+	Files     []FileResult      `json:"files"`
+	Findings  []finding.Finding `json:"findings"`
+	Reasoning *ReasoningSummary `json:"reasoning,omitempty"`
+	Errors    []FileError       `json:"errors,omitempty"`
+}
+
+// Summary is the headline count of what survived the audit.
+type Summary struct {
+	Total      int              `json:"total"`
+	Worst      finding.Severity `json:"worst"`
+	Dismissed  int              `json:"dismissed"`
+	BySeverity map[string]int   `json:"by_severity"`
+	ByRule     map[string]int   `json:"by_rule"`
+}
+
+// Summarise derives the summary from the findings.
+func Summarise(findings []finding.Finding) Summary {
+	summary := Summary{
+		Worst:      finding.Info,
+		BySeverity: map[string]int{},
+		ByRule:     map[string]int{},
+	}
+
+	for _, f := range findings {
+		if f.Dismissed {
+			summary.Dismissed++
+			continue
+		}
+		summary.Total++
+		summary.BySeverity[string(f.Severity)]++
+		summary.ByRule[string(f.RuleID)]++
+		if f.Severity.Rank() > summary.Worst.Rank() {
+			summary.Worst = f.Severity
+		}
+	}
+
+	return summary
 }
 
 // FileResult records that a file was audited, so a report can distinguish
