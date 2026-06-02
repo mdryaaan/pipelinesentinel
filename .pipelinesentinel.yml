@@ -1,0 +1,31 @@
+# pipelinesentinel configuration.
+#
+# Every key here has a command line equivalent, and the flag always wins. This
+# file is for the settings a repository wants by default; the flags are for the
+# run you are doing right now.
+
+# Reasoning provider: ollama (local, no key), claude (API key), or offline
+# (deterministic baseline, not a model).
+provider: ollama
+
+# Escalate ambiguous findings to the provider. Off by default: the rules are the
+# product, and a lint that tries to reach a daemon on every run is a lint people
+# stop running.
+reason: false
+
+# Adjudication wants repeatability, not creativity.
+temperature: 0.1
+
+# Hide findings below this severity.
+min_severity: info
+
+# Exit non-zero when a finding reaches this severity.
+fail_on: high
+
+# Rules this repository has consciously decided not to enforce. Unknown names
+# are rejected rather than ignored, so a typo cannot silently disable a check.
+ignore: []
+
+# Workflow files to skip entirely, by glob. A bare filename matches wherever the
+# file lives, so you do not have to retype the .github/workflows prefix.
+ignore_paths: []
