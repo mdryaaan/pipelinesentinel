@@ -16,8 +16,17 @@ Detection is **deterministic**. A language model is consulted only for the handf
 $ pipelinesentinel audit --offline
 🛑  Critical pwn-request        .github/workflows/vulnerable-workflow-1.yml:15  pull_request_target checks out untrusted pull request code
 🛑  Critical script-injection   .github/workflows/vulnerable-workflow-1.yml:19  Untrusted github.event.pull_request.title interpolated into a run block
+🛑  Critical script-injection   .github/workflows/vulnerable-workflow-1.yml:20  Untrusted github.event.pull_request.head.ref interpolated into a run block
+🛑  Critical script-injection   .github/workflows/vulnerable-workflow-2.yml:16  Untrusted github.event.issue.title interpolated into a run block
 🛑  Critical secret-leak        .github/workflows/vulnerable-workflow-2.yml:20  Secret written to the build log
-🔴  High     broad-permissions  .github/workflows/vulnerable-workflow-1.yml:6   Blanket write-all permissions at workflow level
+🔴  High     broad-permissions  .github/workflows/vulnerable-workflow-1.yml:6  Blanket write-all permissions at workflow level
+🔴  High     secret-leak        .github/workflows/vulnerable-workflow-1.yml:23  Secret passed on a command line
+🔴  High     broad-permissions  .github/workflows/vulnerable-workflow-2.yml:3  No explicit permissions block
+🔴  High     unpinned-action    .github/workflows/vulnerable-workflow-2.yml:22  Action "some-org/some-action@latest" is not pinned to a commit SHA
+🔴  High     secret-leak        .github/workflows/vulnerable-workflow-3.yml:25  Secret passed on a command line
+🟠  Medium   unpinned-action    .github/workflows/vulnerable-workflow-1.yml:13  Action "actions/checkout@v4" is not pinned to a commit SHA
+🟠  Medium   unpinned-action    .github/workflows/vulnerable-workflow-2.yml:12  Action "actions/checkout@main" is not pinned to a commit SHA
+🟠  Medium   unpinned-action    .github/workflows/vulnerable-workflow-3.yml:15  Action "actions/checkout@v4" is not pinned to a commit SHA
 🟠  Medium   unpinned-action    .github/workflows/vulnerable-workflow-3.yml:16  Action "actions/setup-go@v5" is not pinned to a commit SHA
 
 14 finding(s) in 5 file(s): 5 Critical, 5 High, 4 Medium
