@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/mdryaaan/pipelinesentinel/internal/audit"
-	"github.com/mdryaaan/pipelinesentinel/internal/report"
 )
 
 var reportOpts struct {
@@ -75,7 +73,11 @@ func runReport(cmd *cobra.Command, args []string) error {
 		fmt.Fprintln(cmd.ErrOrStderr(), "pipelinesentinel: "+result.Reasoning.Disclaimer)
 	}
 
-	if err := renderTo(cmd, result, reportOpts.Format, reportOpts.Output); err != nil {
+	format := reportOpts.Format
+	if format == "" {
+		format = formatMarkdown
+	}
+	if err := writeTo(cmd.OutOrStdout(), result, format, reportOpts.Output); err != nil {
 		return err
 	}
 
@@ -83,7 +85,7 @@ func runReport(cmd *cobra.Command, args []string) error {
 	// so a job can post a comment and still keep the record a policy gate or a
 	// dashboard reads.
 	if reportOpts.JSONPath != "" {
-		if err := renderTo(cmd, result, "json", reportOpts.JSONPath); err != nil {
+		if err := writeTo(cmd.OutOrStdout(), result, formatJSON, reportOpts.JSONPath); err != nil {
 			return err
 		}
 	}
@@ -104,32 +106,4 @@ func runReport(cmd *cobra.Command, args []string) error {
 		return &thresholdError{Worst: result.Worst(), Threshold: threshold, Count: count}
 	}
 	return nil
-}
-
-func renderTo(cmd *cobra.Command, result report.Audit, format, path string) error {
-	out := cmd.OutOrStdout()
-	if path != "" {
-		file, err := os.Create(path)
-		if err != nil {
-			return fmt.Errorf("creating %s: %w", path, err)
-		}
-		defer func() { _ = file.Close() }()
-		out = file
-	}
-
-	switch format {
-	case "markdown", "md", "":
-		return report.WriteMarkdown(out, result)
-	case "json":
-		return report.WriteJSON(out, result)
-	case "sarif":
-		return report.WriteSARIF(out, result)
-	case "pr-comment", "comment":
-		return report.WritePRComment(out, result)
-	case "digest":
-		return report.WriteDigest(out, result)
-	default:
-		return fmt.Errorf("unknown format %q (want markdown, json, sarif, pr-comment, or digest)",
-			format)
-	}
 }

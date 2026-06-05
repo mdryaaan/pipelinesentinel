@@ -75,17 +75,6 @@ func untrustedIn(expr string) []string {
 	return hits
 }
 
-// lineWithin finds the 0-based offset of the first line of body containing
-// needle, so a finding inside a multi-line `run:` block cites the right line.
-func lineWithin(body, needle string) int {
-	for i, line := range strings.Split(body, "\n") {
-		if strings.Contains(line, needle) {
-			return i
-		}
-	}
-	return 0
-}
-
 // stepLabel names a step for reports, falling back through the fields a
 // workflow author might have set.
 func stepLabel(step parser.Step) string {

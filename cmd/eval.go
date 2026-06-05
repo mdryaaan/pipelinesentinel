@@ -110,16 +110,17 @@ func runEval(cmd *cobra.Command, args []string) error {
 		if err := writeEvalText(cmd, result); err != nil {
 			return err
 		}
-	case "markdown", "md":
+	case formatMarkdown, formatMarkdownS:
 		if err := eval.WriteMarkdown(out, result); err != nil {
 			return err
 		}
-	case "json":
+	case formatJSON:
 		if err := eval.WriteJSON(out, result); err != nil {
 			return err
 		}
 	default:
-		return fmt.Errorf("unknown format %q (want text, markdown, or json)", evalOpts.Format)
+		return fmt.Errorf("unknown format %q (want text, %s, or %s)",
+			evalOpts.Format, formatMarkdown, formatJSON)
 	}
 
 	// A regression gate belongs in the eval command itself: it is the only

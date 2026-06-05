@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -107,31 +106,11 @@ func runAudit(cmd *cobra.Command, args []string) error {
 }
 
 func writeAudit(cmd *cobra.Command, result report.Audit) error {
-	out := cmd.OutOrStdout()
-	if auditOpts.Output != "" {
-		file, err := os.Create(auditOpts.Output)
-		if err != nil {
-			return fmt.Errorf("creating %s: %w", auditOpts.Output, err)
-		}
-		defer func() { _ = file.Close() }()
-		out = file
+	format := auditOpts.Format
+	if format == "" {
+		format = formatDigest
 	}
-
-	switch auditOpts.Format {
-	case "digest", "":
-		return report.WriteDigest(out, result)
-	case "markdown", "md":
-		return report.WriteMarkdown(out, result)
-	case "json":
-		return report.WriteJSON(out, result)
-	case "sarif":
-		return report.WriteSARIF(out, result)
-	case "pr-comment", "comment":
-		return report.WritePRComment(out, result)
-	default:
-		return fmt.Errorf("unknown format %q (want digest, markdown, json, sarif, or pr-comment)",
-			auditOpts.Format)
-	}
+	return writeTo(cmd.OutOrStdout(), result, format, auditOpts.Output)
 }
 
 func listRules(cmd *cobra.Command) error {
