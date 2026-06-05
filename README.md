@@ -305,7 +305,8 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: mdryaaan/pipelinesentinel@v1
+      # Pinned to a commit SHA, which is what this tool asks of you.
+      - uses: mdryaaan/pipelinesentinel@e69406efa95c3b21d064e812e9afe8ff27a8cb8a # main
         with:
           fail-on: high
 ```
@@ -335,12 +336,12 @@ jobs:
 The report lands in the job summary automatically. To feed GitHub code scanning as well:
 
 ```yaml
-      - uses: mdryaaan/pipelinesentinel@v1
+      - uses: mdryaaan/pipelinesentinel@e69406efa95c3b21d064e812e9afe8ff27a8cb8a # main
         with:
           sarif-file: results.sarif
           fail-on: critical
 
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
         if: always()
         with:
           sarif_file: results.sarif
